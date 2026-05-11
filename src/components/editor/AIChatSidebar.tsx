@@ -22,7 +22,7 @@ export function AIChatSidebar({ documentId, editor }: AIChatSidebarProps) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; rateLimited: boolean } | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -63,8 +63,11 @@ export function AIChatSidebar({ documentId, editor }: AIChatSidebarProps) {
       });
 
       if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `Request failed with status ${res.status}`);
+        const errData = await res.json().catch(() => ({} as { error?: string; rateLimited?: boolean }));
+        const rateLimited = errData.rateLimited === true || res.status === 429;
+        const msg =
+          errData.error || `Request failed with status ${res.status}`;
+        throw Object.assign(new Error(msg), { rateLimited });
       }
 
       const reader = res.body?.getReader();
@@ -93,7 +96,11 @@ export function AIChatSidebar({ documentId, editor }: AIChatSidebarProps) {
       }
     } catch (err: any) {
       console.error("AI Chat error:", err);
-      setError(err.message || "Something went wrong");
+      const rateLimited = err?.rateLimited === true;
+      setError({
+        message: err?.message || "Something went wrong",
+        rateLimited,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -108,8 +115,25 @@ export function AIChatSidebar({ documentId, editor }: AIChatSidebarProps) {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {error && (
-          <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
-            Error: {error}
+          <div
+            className={`rounded-xl border px-4 py-3 text-sm ${
+              error.rateLimited
+                ? "bg-amber-500/10 border-amber-500/25 text-amber-200"
+                : "bg-red-500/10 border-red-500/20 text-red-400"
+            }`}
+          >
+            <p className="font-medium">{error.rateLimited ? "Temporary limit" : "Error"}</p>
+            <p className="mt-1 leading-relaxed">{error.message}</p>
+            {error.rateLimited && (
+              <a
+                href="https://ai.google.dev/gemini-api/docs/rate-limits"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-block text-xs text-amber-400/90 underline underline-offset-2 hover:text-amber-300"
+              >
+                Gemini API rate limits &amp; quotas
+              </a>
+            )}
           </div>
         )}
         {messages.length === 0 && !error ? (

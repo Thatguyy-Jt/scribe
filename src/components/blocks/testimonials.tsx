@@ -67,8 +67,8 @@ function getAvatarClass(theme: string | undefined) {
     : "!size-12 border border-stone-300"
 }
 
-function getCardVariant(theme: string | undefined) {
-  return theme === "dark" ? "dark" : "dark" // Scribe uses a dark theme overall, so let's stick to dark variant for cards to look good on our background
+function getCardVariant(theme: string | undefined): "dark" | "light" {
+  return "dark"
 }
 
 export function Testimonials() {
