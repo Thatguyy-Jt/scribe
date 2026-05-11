@@ -3,32 +3,66 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim();
 const genAI = new GoogleGenerativeAI(apiKey!);
 
-/** Parse suggested wait time from @google/generative-ai / Google RPC errors. */
-function parseRetryAfterSeconds(error: unknown): number | undefined {
-  if (!error || typeof error !== "object") return undefined;
-  const e = error as { message?: string; errorDetails?: unknown[]; status?: number };
+interface RateLimitInfo {
+  retryAfterSeconds?: number;
+  isDailyQuota: boolean;
+}
+
+/** Parse rate limit details from @google/generative-ai errors. */
+function parseRateLimitInfo(error: unknown): RateLimitInfo {
+  const result: RateLimitInfo = { isDailyQuota: false };
+  if (!error || typeof error !== "object") return result;
+
+  const e = error as { message?: string; errorDetails?: unknown[] };
   const details = e.errorDetails;
+
   if (Array.isArray(details)) {
     for (const d of details) {
-      if (d && typeof d === "object" && "retryDelay" in d) {
+      if (!d || typeof d !== "object") continue;
+
+      // Check QuotaFailure violations for daily vs per-minute
+      if ("violations" in d) {
+        const violations = (d as { violations?: unknown[] }).violations;
+        if (Array.isArray(violations)) {
+          for (const v of violations) {
+            if (v && typeof v === "object" && "quotaId" in v) {
+              const qid = String((v as { quotaId: string }).quotaId);
+              if (qid.includes("PerDay")) {
+                result.isDailyQuota = true;
+              }
+            }
+          }
+        }
+      }
+
+      // Parse RetryInfo delay
+      if ("retryDelay" in d) {
         const rd = (d as { retryDelay?: string }).retryDelay;
         if (typeof rd === "string") {
           const m = rd.match(/^(\d+(?:\.\d+)?)s$/);
           if (m) {
             const n = Number.parseFloat(m[1]);
-            if (Number.isFinite(n) && n > 0) return Math.max(1, Math.ceil(n));
+            if (Number.isFinite(n) && n > 0) result.retryAfterSeconds = Math.max(1, Math.ceil(n));
           }
         }
       }
     }
   }
+
+  // Fallback: parse from message text
   const msg = typeof e.message === "string" ? e.message : "";
-  const match = msg.match(/Please retry in ([\d.]+)\s*s/i);
-  if (match) {
-    const n = Number.parseFloat(match[1]);
-    if (Number.isFinite(n) && n > 0) return Math.max(1, Math.ceil(n));
+  if (!result.isDailyQuota && msg.includes("PerDay")) {
+    result.isDailyQuota = true;
   }
-  return undefined;
+  if (result.retryAfterSeconds == null) {
+    const match = msg.match(/Please retry in ([\d.]+)\s*s/i);
+    if (match) {
+      const n = Number.parseFloat(match[1]);
+      if (Number.isFinite(n) && n > 0) result.retryAfterSeconds = Math.max(1, Math.ceil(n));
+    }
+  }
+
+  return result;
 }
 
 export async function POST(req: Request) {
@@ -106,15 +140,24 @@ INSTRUCTIONS:
       message.includes("Too Many Requests") ||
       message.toLowerCase().includes("quota exceeded");
     const status = is429 ? 429 : 500;
-    const retryAfterSeconds = is429 ? parseRetryAfterSeconds(error) : undefined;
 
     let userMessage: string;
-    if (status === 429) {
-      if (retryAfterSeconds != null) {
+    let isDailyQuota = false;
+    let retryAfterSeconds: number | undefined;
+
+    if (is429) {
+      const info = parseRateLimitInfo(error);
+      isDailyQuota = info.isDailyQuota;
+      retryAfterSeconds = info.retryAfterSeconds;
+
+      if (isDailyQuota) {
+        userMessage =
+          "Daily API quota exceeded. The free tier allows 1,500 requests per day. The quota resets at midnight Pacific Time (8 AM WAT).";
+      } else if (retryAfterSeconds != null) {
         userMessage = `Rate limit reached. Try again in about ${retryAfterSeconds} second${retryAfterSeconds === 1 ? "" : "s"}.`;
       } else {
         userMessage =
-          "Rate limit or quota exceeded for the Gemini API. Wait a few minutes, or check limits at ai.google.dev/gemini-api/docs/rate-limits.";
+          "Rate limit exceeded for the Gemini API. Wait a few minutes and try again.";
       }
     } else {
       userMessage = message;
@@ -129,6 +172,7 @@ INSTRUCTIONS:
       JSON.stringify({
         error: userMessage,
         rateLimited: status === 429,
+        isDailyQuota,
         retryAfterSeconds: retryAfterSeconds ?? null,
       }),
       { status, headers }

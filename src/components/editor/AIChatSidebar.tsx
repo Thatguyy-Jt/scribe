@@ -22,7 +22,7 @@ export function AIChatSidebar({ documentId, editor }: AIChatSidebarProps) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<{ message: string; rateLimited: boolean } | null>(null);
+  const [error, setError] = useState<{ message: string; rateLimited: boolean; isDailyQuota: boolean } | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -63,11 +63,12 @@ export function AIChatSidebar({ documentId, editor }: AIChatSidebarProps) {
       });
 
       if (!res.ok) {
-        const errData = await res.json().catch(() => ({} as { error?: string; rateLimited?: boolean }));
+        const errData = await res.json().catch(() => ({} as { error?: string; rateLimited?: boolean; isDailyQuota?: boolean }));
         const rateLimited = errData.rateLimited === true || res.status === 429;
+        const isDailyQuota = errData.isDailyQuota === true;
         const msg =
           errData.error || `Request failed with status ${res.status}`;
-        throw Object.assign(new Error(msg), { rateLimited });
+        throw Object.assign(new Error(msg), { rateLimited, isDailyQuota });
       }
 
       const reader = res.body?.getReader();
@@ -97,9 +98,11 @@ export function AIChatSidebar({ documentId, editor }: AIChatSidebarProps) {
     } catch (err: any) {
       console.error("AI Chat error:", err);
       const rateLimited = err?.rateLimited === true;
+      const isDailyQuota = err?.isDailyQuota === true;
       setError({
         message: err?.message || "Something went wrong",
         rateLimited,
+        isDailyQuota,
       });
     } finally {
       setIsLoading(false);
@@ -117,12 +120,20 @@ export function AIChatSidebar({ documentId, editor }: AIChatSidebarProps) {
         {error && (
           <div
             className={`rounded-xl border px-4 py-3 text-sm ${
-              error.rateLimited
-                ? "bg-amber-500/10 border-amber-500/25 text-amber-200"
-                : "bg-red-500/10 border-red-500/20 text-red-400"
+              error.isDailyQuota
+                ? "bg-orange-500/10 border-orange-500/25 text-orange-200"
+                : error.rateLimited
+                  ? "bg-amber-500/10 border-amber-500/25 text-amber-200"
+                  : "bg-red-500/10 border-red-500/20 text-red-400"
             }`}
           >
-            <p className="font-medium">{error.rateLimited ? "Temporary limit" : "Error"}</p>
+            <p className="font-medium">
+              {error.isDailyQuota
+                ? "Daily quota exhausted"
+                : error.rateLimited
+                  ? "Temporary limit"
+                  : "Error"}
+            </p>
             <p className="mt-1 leading-relaxed">{error.message}</p>
             {error.rateLimited && (
               <a
@@ -131,7 +142,7 @@ export function AIChatSidebar({ documentId, editor }: AIChatSidebarProps) {
                 rel="noopener noreferrer"
                 className="mt-2 inline-block text-xs text-amber-400/90 underline underline-offset-2 hover:text-amber-300"
               >
-                Gemini API rate limits &amp; quotas
+                View Gemini API rate limits &amp; quotas
               </a>
             )}
           </div>
