@@ -6,7 +6,7 @@ export function Hero() {
   return (
     <section className="relative pt-28 pb-16 sm:pt-32 sm:pb-20 md:pt-48 md:pb-32 overflow-hidden flex flex-col items-center justify-center text-center">
       {/* Background Paths — centered on hero content */}
-      <div className="absolute inset-0 -top-32 sm:-top-48 md:-top-[22rem] flex items-center justify-center overflow-hidden">
+      <div className="absolute inset-0 -top-56 sm:-top-48 md:-top-[22rem] flex items-center justify-center overflow-hidden">
         <FloatingPaths position={1} />
         <FloatingPaths position={-1} />
       </div>
