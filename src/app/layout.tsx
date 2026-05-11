@@ -18,6 +18,9 @@ export const metadata: Metadata = {
   title: "Scribe — AI Document Editor",
   description:
     "Write smarter documents with AI assistance and knowledge references.",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
