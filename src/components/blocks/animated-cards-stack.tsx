@@ -121,12 +121,22 @@ export const CardTransformed = React.forwardRef<
     
     const { scrollYProgress } = useContainerScrollContext()
 
-    const start = index / (arrayLength + 1)
-    const end = (index + 1) / (arrayLength + 1)
+    const start = index / arrayLength
+    const end = (index + 1) / arrayLength
     const range = React.useMemo(() => [start, end], [start, end])
     const rotateRange = [range[0] - 1.5, range[1] / 1.5]
 
-    const y = useTransform(scrollYProgress, range, ["0%", "-180%"])
+    const y = useTransform(
+      scrollYProgress, 
+      range, 
+      index === arrayLength - 1 ? ["0%", "0%"] : ["0%", "-300%"]
+    )
+    const cardOpacity = useTransform(
+      scrollYProgress,
+      [range[0], range[0] + (range[1] - range[0]) * 0.8, range[1]],
+      index === arrayLength - 1 ? [1, 1, 1] : [1, 1, 0]
+    )
+
     const rotate = useTransform(scrollYProgress, rotateRange, [
       incrementRotation,
       0,
@@ -150,6 +160,7 @@ export const CardTransformed = React.forwardRef<
       backfaceVisibility: "hidden" as const,
       zIndex: (arrayLength - index) * incrementZ,
       filter,
+      opacity: cardOpacity,
       ...style,
     }
     return (

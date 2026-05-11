@@ -83,7 +83,7 @@ export function Testimonials() {
             See what professionals are saying about how Scribe transformed their workflows.
           </p>
         </div>
-        <ContainerScroll className="h-[250vh] w-full mt-8 md:mt-16">
+        <ContainerScroll className="h-[150vh] md:h-[200vh] w-full mt-8 md:mt-16">
           <div className="sticky left-0 top-0 h-svh w-full py-12 flex items-center justify-center">
             <CardsContainer className="mx-auto h-[420px] sm:h-[450px] w-[calc(100vw-3rem)] max-w-[350px]">
               {TESTIMONIALS.map((testimonial, index) => (
@@ -91,7 +91,7 @@ export function Testimonials() {
                   arrayLength={TESTIMONIALS.length}
                   key={testimonial.id}
                   variant={getCardVariant(theme)}
-                  index={index + 2}
+                  index={index}
                   role="article"
                   aria-labelledby={`card-${testimonial.id}-title`}
                   aria-describedby={`card-${testimonial.id}-content`}

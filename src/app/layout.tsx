@@ -29,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${lora.variable} ${inter.variable} h-full overflow-x-hidden`}>
+    <html lang="en" className={`${lora.variable} ${inter.variable} h-full`}>
       <body className="min-h-full flex flex-col font-sans bg-background text-foreground antialiased">
         {children}
       </body>
