@@ -30,7 +30,7 @@ export default async function DashboardPage() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Dashboard Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
               <Hexagon className="w-5 h-5 text-white fill-white/20" />
@@ -51,24 +51,24 @@ export default async function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-7xl mx-auto px-6 lg:px-8 py-12 w-full">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 w-full">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 sm:mb-10">
           <div>
-            <h1 className="text-3xl font-bold text-white font-serif mb-2">Your Documents</h1>
-            <p className="text-muted-foreground">Create, edit, and manage your AI-assisted knowledge bases.</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white font-serif mb-1 sm:mb-2">Your Documents</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Create, edit, and manage your AI-assisted knowledge bases.</p>
           </div>
           <CreateDocumentButton />
         </div>
 
         {(!documents || documents.length === 0) ? (
           /* Empty State */
-          <div className="flex flex-col items-center justify-center text-center p-16 rounded-3xl border border-dashed border-border bg-card/30">
-            <div className="h-16 w-16 bg-blue-500/10 rounded-full flex items-center justify-center mb-6">
-              <FileText className="h-8 w-8 text-blue-500" />
+          <div className="flex flex-col items-center justify-center text-center p-8 sm:p-16 rounded-2xl sm:rounded-3xl border border-dashed border-border bg-card/30">
+            <div className="h-14 w-14 sm:h-16 sm:w-16 bg-blue-500/10 rounded-full flex items-center justify-center mb-5 sm:mb-6">
+              <FileText className="h-7 w-7 sm:h-8 sm:w-8 text-blue-500" />
             </div>
-            <h2 className="text-2xl font-bold text-white font-serif mb-3">No documents yet</h2>
-            <p className="text-muted-foreground max-w-md mb-8">
-              You haven't created any documents. Start writing your first AI-assisted SOP, tutorial, or manual today.
+            <h2 className="text-xl sm:text-2xl font-bold text-white font-serif mb-2 sm:mb-3">No documents yet</h2>
+            <p className="text-sm sm:text-base text-muted-foreground max-w-md mb-6 sm:mb-8">
+              You haven&apos;t created any documents. Start writing your first AI-assisted SOP, tutorial, or manual today.
             </p>
             <CreateDocumentButton />
           </div>

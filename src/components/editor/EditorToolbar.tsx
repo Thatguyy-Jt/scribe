@@ -45,7 +45,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
   );
 
   return (
-    <div className="flex items-center gap-1 border-b border-border bg-card/50 backdrop-blur-sm px-4 py-2 sticky top-0 z-10">
+    <div className="flex items-center gap-1 border-b border-border bg-card/50 backdrop-blur-sm px-3 sm:px-4 py-2 sticky top-0 z-10 overflow-x-auto scrollbar-hide">
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBold().run()}
         isActive={editor.isActive("bold")}

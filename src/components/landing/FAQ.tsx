@@ -34,13 +34,13 @@ export function FAQ() {
   };
 
   return (
-    <section id="faq" className="relative py-24 z-10 border-t border-border">
-      <div className="mx-auto max-w-3xl px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+    <section id="faq" className="relative py-16 sm:py-24 z-10 border-t border-border">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-10 sm:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
             Frequently asked questions
           </h2>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-base sm:text-lg">
             Everything you need to know about the product and billing.
           </p>
         </div>
@@ -53,9 +53,9 @@ export function FAQ() {
             >
               <button
                 onClick={() => toggleFaq(index)}
-                className="flex w-full items-center justify-between p-6 text-left"
+                className="flex w-full items-center justify-between p-4 sm:p-6 text-left gap-4"
               >
-                <span className="text-base font-semibold text-white">
+                <span className="text-sm sm:text-base font-semibold text-white">
                   {faq.question}
                 </span>
                 <ChevronDown 
@@ -69,7 +69,7 @@ export function FAQ() {
                 }`}
               >
                 <div className="overflow-hidden">
-                  <p className="p-6 pt-0 text-muted-foreground text-sm leading-relaxed">
+                  <p className="px-4 pb-4 sm:p-6 sm:pt-0 text-muted-foreground text-sm leading-relaxed">
                     {faq.answer}
                   </p>
                 </div>

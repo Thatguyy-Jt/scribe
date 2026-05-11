@@ -27,7 +27,7 @@ export function DocumentWorkspace({ documentId }: { documentId: string }) {
     <div className="flex h-screen w-full overflow-hidden bg-background text-foreground relative">
       {/* Left Sidebar (Knowledge) */}
       <div 
-        className={`absolute inset-y-0 left-0 z-20 w-72 flex-col border-r border-border bg-background shadow-xl lg:shadow-none lg:static lg:bg-card/30 transition-transform duration-300 ease-in-out flex ${
+        className={`absolute inset-y-0 left-0 z-20 w-[85vw] max-w-72 flex-col border-r border-border bg-background shadow-xl lg:shadow-none lg:static lg:w-72 lg:max-w-none lg:bg-card/30 transition-transform duration-300 ease-in-out flex ${
           leftSidebarOpen ? "translate-x-0" : "-translate-x-full lg:hidden"
         }`}
       >
@@ -59,7 +59,7 @@ export function DocumentWorkspace({ documentId }: { documentId: string }) {
 
       {/* Right Sidebar (AI Chat) */}
       <div 
-        className={`absolute inset-y-0 right-0 z-20 w-80 flex-col border-l border-border bg-background shadow-xl xl:shadow-none xl:static xl:bg-card/30 transition-transform duration-300 ease-in-out flex ${
+        className={`absolute inset-y-0 right-0 z-20 w-[85vw] max-w-80 flex-col border-l border-border bg-background shadow-xl xl:shadow-none xl:static xl:w-80 xl:max-w-none xl:bg-card/30 transition-transform duration-300 ease-in-out flex ${
           rightSidebarOpen ? "translate-x-0" : "translate-x-full xl:hidden"
         }`}
       >

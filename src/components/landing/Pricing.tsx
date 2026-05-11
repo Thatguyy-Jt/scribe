@@ -3,20 +3,20 @@ import Link from "next/link";
 
 export function Pricing() {
   return (
-    <section id="pricing" className="relative py-24 z-10">
-      <div className="mx-auto max-w-6xl px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+    <section id="pricing" className="relative py-16 sm:py-24 z-10">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
             Simple, transparent pricing
           </h2>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-base sm:text-lg">
             Start for free, upgrade when you need more power and team collaboration features.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto">
           {/* Free Tier */}
-          <div className="rounded-3xl border border-border bg-card p-8 flex flex-col">
+          <div className="rounded-2xl sm:rounded-3xl border border-border bg-card p-6 sm:p-8 flex flex-col">
             <h3 className="text-xl font-bold text-white mb-2">Free</h3>
             <p className="text-muted-foreground text-sm mb-6">
               Perfect for individuals just getting started with AI documentation.
@@ -48,7 +48,7 @@ export function Pricing() {
           </div>
 
           {/* Pro Tier */}
-          <div className="rounded-3xl border border-blue-500/30 bg-gradient-to-b from-[#1a2035] to-card p-8 flex flex-col relative shadow-2xl shadow-blue-900/20">
+          <div className="rounded-2xl sm:rounded-3xl border border-blue-500/30 bg-gradient-to-b from-[#1a2035] to-card p-6 sm:p-8 flex flex-col relative shadow-2xl shadow-blue-900/20">
             <div className="absolute top-0 right-8 transform -translate-y-1/2">
               <span className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                 Popular
@@ -89,7 +89,7 @@ export function Pricing() {
           </div>
 
           {/* Enterprise Tier */}
-          <div className="rounded-3xl border border-border bg-card p-8 flex flex-col">
+          <div className="rounded-2xl sm:rounded-3xl border border-border bg-card p-6 sm:p-8 flex flex-col">
             <h3 className="text-xl font-bold text-white mb-2">Enterprise</h3>
             <p className="text-muted-foreground text-sm mb-6">
               Custom solutions for large teams with advanced security needs.

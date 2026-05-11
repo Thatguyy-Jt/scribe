@@ -75,17 +75,17 @@ export function Testimonials() {
   const { theme } = useTheme()
 
   return (
-    <section className="relative py-24 z-10">
-      <div className="mx-auto max-w-6xl px-6 lg:px-8">
+    <section className="relative py-16 sm:py-24 z-10">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div>
-          <h2 className="text-center text-4xl font-semibold text-white">Loved by teams</h2>
-          <p className="mx-auto mt-2 max-w-lg text-center text-muted-foreground text-lg">
+          <h2 className="text-center text-2xl sm:text-4xl font-semibold text-white">Loved by teams</h2>
+          <p className="mx-auto mt-2 max-w-lg text-center text-muted-foreground text-base sm:text-lg px-2">
             See what professionals are saying about how Scribe transformed their workflows.
           </p>
         </div>
         <ContainerScroll className="h-[250vh] w-full mt-8 md:mt-16">
           <div className="sticky left-0 top-0 h-svh w-full py-12 flex items-center justify-center">
-            <CardsContainer className="mx-auto h-[450px] w-[350px]">
+            <CardsContainer className="mx-auto h-[420px] sm:h-[450px] w-[calc(100vw-3rem)] max-w-[350px]">
               {TESTIMONIALS.map((testimonial, index) => (
                 <CardTransformed
                   arrayLength={TESTIMONIALS.length}
@@ -96,16 +96,16 @@ export function Testimonials() {
                   aria-labelledby={`card-${testimonial.id}-title`}
                   aria-describedby={`card-${testimonial.id}-content`}
                 >
-                  <div className="flex flex-col items-center space-y-4 text-center">
+                  <div className="flex flex-col items-center space-y-3 sm:space-y-4 text-center">
                     <ReviewStars
                       className={getReviewStarsClass(theme)}
                       rating={testimonial.rating}
                     />
-                    <div className={`mx-auto w-4/5 text-lg ${getTextClass(theme)}`}>
+                    <div className={`mx-auto w-[90%] sm:w-4/5 text-base sm:text-lg ${getTextClass(theme)}`}>
                       <blockquote cite="#">{testimonial.description}</blockquote>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4">
                     <Avatar className={getAvatarClass(theme)}>
                       <AvatarImage
                         src={testimonial.avatarUrl}
@@ -118,11 +118,11 @@ export function Testimonials() {
                           .join("")}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="text-left">
-                      <span className="block text-lg font-semibold tracking-tight text-white md:text-xl">
+                    <div className="text-left min-w-0">
+                      <span className="block text-base sm:text-lg font-semibold tracking-tight text-white md:text-xl truncate">
                         {testimonial.name}
                       </span>
-                      <span className="block text-sm text-muted-foreground">
+                      <span className="block text-xs sm:text-sm text-muted-foreground truncate">
                         {testimonial.profession}
                       </span>
                     </div>
