@@ -32,13 +32,15 @@ export function DocumentEditor({
   const [title, setTitle] = useState("Untitled Document");
   const titleRef = useRef(title);
   titleRef.current = title;
+  const isLoadingContent = useRef(false);
 
   // Keep local title in sync with remote document on initial load
   useEffect(() => {
     if (document && document.title) {
       setTitle(document.title);
+      titleRef.current = document.title;
     }
-  }, [document?.title]); // Only depend on the title changing
+  }, [document?.title]);
 
   const { scheduleSave, hasPendingChanges } = useAutoSave(async (newTitle, newContent) => {
     await saveDocument(newTitle, newContent);
@@ -55,6 +57,7 @@ export function DocumentEditor({
     ],
     content: "",
     onUpdate: ({ editor }) => {
+      if (isLoadingContent.current) return;
       const json = editor.getJSON();
       setSaveStatus("idle");
       scheduleSave(titleRef.current, json);
@@ -77,7 +80,9 @@ export function DocumentEditor({
     if (editor && document?.content && !editor.isFocused) {
       const currentText = editor.getText();
       if (!currentText && document.content?.type === "doc") {
-         editor.commands.setContent(document.content);
+        isLoadingContent.current = true;
+        editor.commands.setContent(document.content);
+        isLoadingContent.current = false;
       }
     }
   }, [editor, document?.id]);
