@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 export function useAutoSave(
   callback: (title: string, content: any) => Promise<void>,
@@ -6,25 +6,35 @@ export function useAutoSave(
 ) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
+  const callbackRef = useRef(callback);
+  const pendingRef = useRef<{ title: string; content: any } | null>(null);
 
-  const scheduleSave = (title: string, content: any) => {
+  callbackRef.current = callback;
+
+  const scheduleSave = useCallback((title: string, content: any) => {
     setHasPendingChanges(true);
+    pendingRef.current = { title, content };
 
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
     timeoutRef.current = setTimeout(async () => {
-      await callback(title, content);
+      pendingRef.current = null;
+      await callbackRef.current(title, content);
       setHasPendingChanges(false);
     }, delay);
-  };
+  }, [delay]);
 
-  // Cleanup on unmount
+  // Flush pending save on unmount so changes aren't lost
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+      }
+      if (pendingRef.current) {
+        const { title, content } = pendingRef.current;
+        callbackRef.current(title, content);
       }
     };
   }, []);

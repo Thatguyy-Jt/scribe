@@ -4,7 +4,7 @@ import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useDocument } from "@/hooks/useDocument";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { DocumentHeader } from "./DocumentHeader";
@@ -30,6 +30,8 @@ export function DocumentEditor({
 }: DocumentEditorProps) {
   const { document, loading, error, saveDocument, saveStatus, setSaveStatus } = useDocument(documentId);
   const [title, setTitle] = useState("Untitled Document");
+  const titleRef = useRef(title);
+  titleRef.current = title;
 
   // Keep local title in sync with remote document on initial load
   useEffect(() => {
@@ -54,8 +56,8 @@ export function DocumentEditor({
     content: "",
     onUpdate: ({ editor }) => {
       const json = editor.getJSON();
-      setSaveStatus("idle"); // reset status so user knows it hasn't saved yet
-      scheduleSave(title, json);
+      setSaveStatus("idle");
+      scheduleSave(titleRef.current, json);
     },
     editorProps: {
       attributes: {
