@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createClient } from "@/lib/supabase/server";
 
 const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim();
 const genAI = new GoogleGenerativeAI(apiKey!);
@@ -66,6 +67,16 @@ function parseRateLimitInfo(error: unknown): RateLimitInfo {
 }
 
 export async function POST(req: Request) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized. Please sign in to use AI features." }),
+      { status: 401, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
   try {
     const { messages, documentContent, knowledge } = await req.json();
 
