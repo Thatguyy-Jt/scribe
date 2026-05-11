@@ -36,7 +36,7 @@ export function DocumentHeader({
         {onToggleLeftSidebar && (
           <button
             onClick={onToggleLeftSidebar}
-            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors lg:hidden ${leftSidebarOpen ? 'bg-blue-500/10 text-blue-500' : 'text-muted-foreground hover:bg-card hover:text-foreground'}`}
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${leftSidebarOpen ? 'bg-blue-500/10 text-blue-500' : 'text-muted-foreground hover:bg-card hover:text-foreground'}`}
             title="Toggle Knowledge Sidebar"
           >
             <Library className="h-4 w-4" />
@@ -73,7 +73,7 @@ export function DocumentHeader({
         {onToggleRightSidebar && (
           <button
             onClick={onToggleRightSidebar}
-            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors xl:hidden ${rightSidebarOpen ? 'bg-amber-500/10 text-amber-500' : 'text-muted-foreground hover:bg-card hover:text-foreground'}`}
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${rightSidebarOpen ? 'bg-amber-500/10 text-amber-500' : 'text-muted-foreground hover:bg-card hover:text-foreground'}`}
             title="Toggle AI Chat Sidebar"
           >
             <Sparkles className="h-4 w-4" />

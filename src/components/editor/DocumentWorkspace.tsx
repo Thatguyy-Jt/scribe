@@ -23,47 +23,58 @@ export function DocumentWorkspace({ documentId }: { documentId: string }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const toggleLeftSidebar = () => {
+    if (!leftSidebarOpen && window.innerWidth < 1024) {
+      setRightSidebarOpen(false);
+    }
+    setLeftSidebarOpen(!leftSidebarOpen);
+  };
+
+  const toggleRightSidebar = () => {
+    if (!rightSidebarOpen && window.innerWidth < 1280) {
+      setLeftSidebarOpen(false);
+    }
+    setRightSidebarOpen(!rightSidebarOpen);
+  };
+
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background text-foreground relative">
-      {/* Left Sidebar (Knowledge) */}
+    <div className="flex flex-col lg:flex-row h-[100dvh] w-full overflow-hidden bg-background text-foreground relative">
+      {/* Left/Top Sidebar (Knowledge) */}
       <div 
-        className={`absolute inset-y-0 left-0 z-20 w-[85vw] max-w-72 flex-col border-r border-border bg-background shadow-xl lg:shadow-none lg:static lg:w-72 lg:max-w-none lg:bg-card/30 transition-transform duration-300 ease-in-out flex ${
-          leftSidebarOpen ? "translate-x-0" : "-translate-x-full lg:hidden"
+        className={`flex-col border-border bg-background lg:bg-card/30 transition-all duration-300 ease-in-out flex shrink-0 ${
+          leftSidebarOpen 
+            ? "h-[50%] border-b lg:h-auto lg:w-72 lg:border-b-0 lg:border-r" 
+            : "h-0 border-b-0 lg:h-auto lg:w-0 lg:border-r-0 overflow-hidden lg:hidden"
         }`}
       >
-        <KnowledgeSidebar documentId={documentId} />
+        <div className="h-full w-full overflow-hidden flex flex-col">
+          <KnowledgeSidebar documentId={documentId} />
+        </div>
       </div>
 
-      {/* Overlay for mobile sidebars */}
-      {(leftSidebarOpen || rightSidebarOpen) && (
-        <div 
-          className="absolute inset-0 z-10 bg-background/80 backdrop-blur-sm lg:hidden"
-          onClick={() => {
-            setLeftSidebarOpen(false);
-            setRightSidebarOpen(false);
-          }}
-        />
-      )}
-
       {/* Center - Editor Core */}
-      <div className="flex-1 flex flex-col min-w-0 transition-all z-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 transition-all z-0">
         <DocumentEditor 
           documentId={documentId} 
           onEditorReady={setEditor} 
-          onToggleLeftSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)}
-          onToggleRightSidebar={() => setRightSidebarOpen(!rightSidebarOpen)}
+          onToggleLeftSidebar={toggleLeftSidebar}
+          onToggleRightSidebar={toggleRightSidebar}
           leftSidebarOpen={leftSidebarOpen}
           rightSidebarOpen={rightSidebarOpen}
         />
       </div>
 
-      {/* Right Sidebar (AI Chat) */}
+      {/* Right/Bottom Sidebar (AI Chat) */}
       <div 
-        className={`absolute inset-y-0 right-0 z-20 w-[85vw] max-w-80 flex-col border-l border-border bg-background shadow-xl xl:shadow-none xl:static xl:w-80 xl:max-w-none xl:bg-card/30 transition-transform duration-300 ease-in-out flex ${
-          rightSidebarOpen ? "translate-x-0" : "translate-x-full xl:hidden"
+        className={`flex-col border-border bg-background xl:bg-card/30 transition-all duration-300 ease-in-out flex shrink-0 ${
+          rightSidebarOpen 
+            ? "h-[50%] border-t xl:h-auto xl:w-80 xl:border-t-0 xl:border-l" 
+            : "h-0 border-t-0 xl:h-auto xl:w-0 xl:border-l-0 overflow-hidden xl:hidden"
         }`}
       >
-        <AIChatSidebar documentId={documentId} editor={editor} />
+        <div className="h-full w-full overflow-hidden flex flex-col">
+          <AIChatSidebar documentId={documentId} editor={editor} />
+        </div>
       </div>
     </div>
   );
