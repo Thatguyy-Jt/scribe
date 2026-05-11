@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FileText, Clock } from "lucide-react";
+import { DeleteDocumentButton } from "./DeleteDocumentButton";
 
 interface DocumentData {
   id: string;
@@ -39,12 +40,15 @@ export function DocumentCard({ document }: { document: DocumentData }) {
   return (
     <Link 
       href={`/documents/${document.id}`}
-      className="group flex flex-col justify-between rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:border-blue-500/50 hover:shadow-md hover:-translate-y-1"
+      className="group flex flex-col justify-between rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:border-blue-500/50 hover:shadow-md hover:-translate-y-1 relative"
     >
       <div>
         <div className="mb-4 flex items-center justify-between">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
             <FileText className="h-5 w-5" />
+          </div>
+          <div className="opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+            <DeleteDocumentButton documentId={document.id} />
           </div>
         </div>
         <h3 className="mb-2 text-lg font-bold text-foreground font-serif line-clamp-1">
