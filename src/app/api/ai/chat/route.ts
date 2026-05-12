@@ -9,58 +9,117 @@ interface RateLimitInfo {
   isDailyQuota: boolean;
 }
 
+function collectQuotaViolations(details: unknown[]): unknown[] {
+  const out: unknown[] = [];
+  for (const d of details) {
+    if (!d || typeof d !== "object") continue;
+    if ("violations" in d) {
+      const violations = (d as { violations?: unknown[] }).violations;
+      if (Array.isArray(violations)) out.push(...violations);
+    }
+  }
+  return out;
+}
+
+function violationQuotaId(v: unknown): string {
+  if (!v || typeof v !== "object") return "";
+  const o = v as { quotaId?: string; quotaMetric?: string };
+  return String(o.quotaId || o.quotaMetric || "");
+}
+
 /** Parse rate limit details from @google/generative-ai errors. */
 function parseRateLimitInfo(error: unknown): RateLimitInfo {
   const result: RateLimitInfo = { isDailyQuota: false };
   if (!error || typeof error !== "object") return result;
 
-  const e = error as { message?: string; errorDetails?: unknown[] };
-  const details = e.errorDetails;
+  const e = error as {
+    message?: string;
+    errorDetails?: unknown[];
+    status?: number;
+    cause?: unknown;
+  };
+  const detailArrays: unknown[] = [];
+  if (Array.isArray(e.errorDetails)) detailArrays.push(...e.errorDetails);
 
-  if (Array.isArray(details)) {
-    for (const d of details) {
-      if (!d || typeof d !== "object") continue;
+  // Some environments nest cause
+  if (e.cause && typeof e.cause === "object") {
+    const c = e.cause as { errorDetails?: unknown[] };
+    if (Array.isArray(c.errorDetails)) detailArrays.push(...c.errorDetails);
+  }
 
-      // Check QuotaFailure violations for daily vs per-minute
-      if ("violations" in d) {
-        const violations = (d as { violations?: unknown[] }).violations;
-        if (Array.isArray(violations)) {
-          for (const v of violations) {
-            if (v && typeof v === "object" && "quotaId" in v) {
-              const qid = String((v as { quotaId: string }).quotaId);
-              if (qid.includes("PerDay")) {
-                result.isDailyQuota = true;
-              }
-            }
-          }
-        }
-      }
+  const violations = collectQuotaViolations(detailArrays);
 
-      // Parse RetryInfo delay
-      if ("retryDelay" in d) {
-        const rd = (d as { retryDelay?: string }).retryDelay;
-        if (typeof rd === "string") {
-          const m = rd.match(/^(\d+(?:\.\d+)?)s$/);
-          if (m) {
-            const n = Number.parseFloat(m[1]);
-            if (Number.isFinite(n) && n > 0) result.retryAfterSeconds = Math.max(1, Math.ceil(n));
+  for (const d of detailArrays) {
+    if (!d || typeof d !== "object") continue;
+    if ("retryDelay" in d) {
+      const rd = (d as { retryDelay?: string }).retryDelay;
+      if (typeof rd === "string") {
+        const m = rd.match(/^(\d+(?:\.\d+)?)s$/);
+        if (m) {
+          const n = Number.parseFloat(m[1]);
+          if (Number.isFinite(n) && n > 0) {
+            result.retryAfterSeconds = Math.max(1, Math.ceil(n));
           }
         }
       }
     }
   }
 
-  // Fallback: parse from message text
   const msg = typeof e.message === "string" ? e.message : "";
-  if (!result.isDailyQuota && msg.includes("PerDay")) {
-    result.isDailyQuota = true;
+  const msgLower = msg.toLowerCase();
+
+  let hitsPerMinute = false;
+  let hitsPerDay = false;
+
+  for (const v of violations) {
+    const qid = violationQuotaId(v).toLowerCase();
+    if (
+      qid.includes("perminute") ||
+      qid.includes("per_minute") ||
+      qid.includes("persecond") ||
+      qid.includes("per_second")
+    ) {
+      hitsPerMinute = true;
+    }
+    if (qid.includes("perday") || qid.includes("per_day")) {
+      hitsPerDay = true;
+    }
   }
+
+  // Google may stringify all details into message — prefer explicit violation types
+  if (violations.length === 0) {
+    if (/\bper[- ]?minute\b|rpm\b|requests per minute/i.test(msg)) hitsPerMinute = true;
+    if (/\bper[- ]?day\b|requests per day|daily quota/i.test(msg)) hitsPerDay = true;
+  }
+
+  // Per-minute / burst limits are often mislabeled as "daily" if we only grep "day" in JSON
+  if (hitsPerMinute) {
+    result.isDailyQuota = false;
+  } else if (hitsPerDay) {
+    result.isDailyQuota = true;
+  } else if (
+    msgLower.includes("perday") ||
+    /\bper[- ]?day\b/i.test(msg)
+  ) {
+    // Last resort: avoid matching generic "per day" in unrelated text
+    if (!msgLower.includes("perminute") && !msgLower.includes("per minute")) {
+      result.isDailyQuota = true;
+    }
+  }
+
   if (result.retryAfterSeconds == null) {
     const match = msg.match(/Please retry in ([\d.]+)\s*s/i);
     if (match) {
       const n = Number.parseFloat(match[1]);
-      if (Number.isFinite(n) && n > 0) result.retryAfterSeconds = Math.max(1, Math.ceil(n));
+      if (Number.isFinite(n) && n > 0) {
+        result.retryAfterSeconds = Math.max(1, Math.ceil(n));
+      }
     }
+  }
+
+  // If Google sends Retry-After-style hint, treat as short window unless clearly daily
+  if (result.retryAfterSeconds != null && result.retryAfterSeconds <= 120 && !hitsPerDay) {
+    result.isDailyQuota = false;
   }
 
   return result;
@@ -163,7 +222,7 @@ INSTRUCTIONS:
 
       if (isDailyQuota) {
         userMessage =
-          "Daily API quota exceeded. The free tier allows 1,500 requests per day. The quota resets at midnight Pacific Time (8 AM WAT).";
+          "Daily API quota for this model was hit (free tier is limited per day per API key / project). Quotas reset around midnight Pacific Time. If you barely used the app today, your Gemini API key is usually shared—e.g. the same key on Vercel and on your PC, or another project using that key. Create a fresh key in Google AI Studio, set it in Vercel (and .env.local), and check usage in the AI Studio / Google Cloud console.";
       } else if (retryAfterSeconds != null) {
         userMessage = `Rate limit reached. Try again in about ${retryAfterSeconds} second${retryAfterSeconds === 1 ? "" : "s"}.`;
       } else {
