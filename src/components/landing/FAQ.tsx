@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { formatNgn, getMonthlyNgnWhole } from "@/lib/pricing";
+
+const monthlyNgnLabel = formatNgn(getMonthlyNgnWhole());
 
 const faqs = [
   {
@@ -21,9 +24,9 @@ const faqs = [
     answer: "Yes, you can easily export your Scribe documents to standard formats like PDF and Markdown to share with team members or clients who don't have a Scribe account."
   },
   {
-    question: "Is there a free trial for the Pro plan?",
-    answer: "Yes! You can try the Pro plan for free for 14 days, giving you full access to unlimited documents and unrestricted AI queries."
-  }
+    question: "How does the free trial and billing work?",
+    answer: `You get full access to Scribe for three days at no charge. After the trial, you pay ${monthlyNgnLabel} per month in Nigerian naira through Paystack. You can create unlimited documents and use unrestricted AI assistance while your account is active.`,
+  },
 ];
 
 export function FAQ() {

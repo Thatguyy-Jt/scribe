@@ -35,9 +35,6 @@ export function Navbar() {
             <Link href="/pricing#faq" className="hover:text-white transition-colors">
               FAQ
             </Link>
-            <Link href="/#enterprise" className="hover:text-white transition-colors">
-              Enterprise
-            </Link>
           </nav>
 
           {/* Desktop Auth Actions */}
@@ -98,13 +95,6 @@ export function Navbar() {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               FAQ
-            </Link>
-            <Link 
-              href="/#enterprise" 
-              className="text-base font-medium text-muted-foreground hover:text-white transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Enterprise
             </Link>
           </div>
           <div className="flex flex-col gap-3 pt-6">
