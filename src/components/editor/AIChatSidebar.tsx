@@ -137,12 +137,12 @@ export function AIChatSidebar({ documentId, editor }: AIChatSidebarProps) {
             <p className="mt-1 leading-relaxed">{error.message}</p>
             {error.rateLimited && (
               <a
-                href="https://ai.google.dev/gemini-api/docs/rate-limits"
+                href="https://console.groq.com/docs/rate-limits"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-2 inline-block text-xs text-amber-400/90 underline underline-offset-2 hover:text-amber-300"
               >
-                View Gemini API rate limits &amp; quotas
+                View Groq API rate limits
               </a>
             )}
           </div>

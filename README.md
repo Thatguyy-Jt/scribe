@@ -11,7 +11,7 @@ Scribe is a full-stack document editor that pairs a rich text writing experience
 ## Features
 
 - **Rich Text Editor** — Powered by Tiptap with bold, italic, underline, headings (H1–H3), bullet/ordered lists, blockquotes, and placeholder text.
-- **AI Writing Assistant** — Chat sidebar powered by Google Gemini. Ask the AI to draft sections, summarize notes, or brainstorm ideas. Responses stream in real-time and can be inserted directly into your document.
+- **AI Writing Assistant** — Chat sidebar powered by [Groq](https://groq.com). Ask the AI to draft sections, summarize notes, or brainstorm ideas. Responses stream in real-time and can be inserted directly into your document.
 - **Knowledge Base** — Attach context, facts, or instructions to any document. The AI references these knowledge sources when generating responses.
 - **Auto-Save** — Documents save automatically after 2 seconds of inactivity. Title and content changes persist seamlessly.
 - **Authentication** — Email/password auth via Supabase with protected routes and middleware-level session management.
@@ -29,7 +29,7 @@ Scribe is a full-stack document editor that pairs a rich text writing experience
 | Styling | [Tailwind CSS](https://tailwindcss.com) v4, Lora + Inter (Google Fonts) |
 | Auth & Database | [Supabase](https://supabase.com) (Postgres + Auth + RLS) |
 | Rich Text Editor | [Tiptap](https://tiptap.dev) (StarterKit, Placeholder, Underline) |
-| AI | [Google Generative AI](https://ai.google.dev) (Gemini 2.0 Flash) |
+| AI | [Groq](https://groq.com) via [Vercel AI SDK](https://sdk.vercel.ai) (`@ai-sdk/groq`, default model `llama-3.3-70b-versatile`) |
 | Animations | [Framer Motion](https://motion.dev) |
 | Icons | [Lucide React](https://lucide.dev) |
 | Deployment | [Vercel](https://vercel.com) |
@@ -62,7 +62,7 @@ scribe/
 │   │   │   └── documents/[id]/
 │   │   │       └── page.tsx            # Editor view
 │   │   └── api/ai/chat/
-│   │       └── route.ts                # Gemini AI streaming endpoint (auth-protected)
+│   │       └── route.ts                # Groq AI streaming endpoint (auth-protected)
 │   ├── components/
 │   │   ├── auth/AuthForm.tsx           # Shared login/signup form
 │   │   ├── dashboard/
@@ -97,7 +97,7 @@ scribe/
 
 - **Node.js** 18+
 - A [Supabase](https://supabase.com) project (free tier works)
-- A [Google AI Studio](https://aistudio.google.com) API key (free tier: 1,500 requests/day)
+- A [Groq Cloud](https://console.groq.com/keys) API key
 
 ### 1. Clone the repo
 
@@ -123,14 +123,14 @@ Create a `.env.local` file in the project root:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-supabase-anon-key
-GOOGLE_GENERATIVE_AI_API_KEY=your-google-ai-studio-api-key
+GROQ_API_KEY=your-groq-api-key
 ```
 
 | Variable | Where to find it |
 |----------|-----------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase Dashboard → Settings → API → Project URL |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase Dashboard → Settings → API → `anon` `public` key |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | [Google AI Studio](https://aistudio.google.com/apikey) → Create API Key |
+| `GROQ_API_KEY` | [Groq Console](https://console.groq.com/keys) → Create API Key |
 
 ### 5. Run the dev server
 
@@ -183,16 +183,16 @@ Both tables have **Row-Level Security** enabled. All policies enforce `auth.uid(
 
 ## AI Integration
 
-The AI chat uses **Google Gemini 2.0 Flash** via the `@google/generative-ai` SDK.
+The AI chat uses **Groq** (`llama-3.3-70b-versatile` by default) via the [`@ai-sdk/groq`](https://sdk.vercel.ai/providers/ai-sdk-providers/groq) provider and Vercel **AI SDK** `streamText`. Override the model with `GROQ_MODEL` if needed.
 
 **How it works:**
 1. User sends a message in the AI Chat sidebar.
 2. The frontend POSTs to `/api/ai/chat` with the chat history, current document content, and all knowledge items.
 3. The API route constructs a system prompt that includes the document and knowledge as context.
-4. Gemini streams a response back, which renders token-by-token in the chat UI.
+4. Groq streams plain text back, which renders incrementally in the chat UI.
 5. The user can click **"Insert into document"** to append any AI response into the editor.
 
-**Free tier limits:** 15 requests/minute, 1,500 requests/day. The app detects daily quota exhaustion and displays a distinct error message (vs. temporary per-minute throttling).
+**Limits:** Groq enforces rate limits per account and model (see [Groq rate limits](https://console.groq.com/docs/rate-limits)). The UI surfaces temporary throttling separately from quota-style messages when the API response allows it.
 
 ---
 
@@ -203,7 +203,7 @@ The app is deployed on **Vercel** with automatic deploys on push to `main`.
 To deploy your own instance:
 
 1. Import the repo on [vercel.com/new](https://vercel.com/new)
-2. Add the three environment variables listed above
+2. Add the environment variables listed above (at minimum Supabase + `GROQ_API_KEY`)
 3. Deploy
 
 After deployment, update your Supabase project:
