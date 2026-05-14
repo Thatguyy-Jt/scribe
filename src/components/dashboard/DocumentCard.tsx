@@ -6,26 +6,39 @@ interface DocumentData {
   id: string;
   title: string;
   updated_at: string;
-  content: any; // We can parse jsonb to get a snippet
+  content: unknown;
 }
 
-function extractTextSnippet(content: any): string {
-  if (!content || !content.content) return "Empty document...";
-  
-  // Simple extraction of the first text node we find
-  let text = "";
-  try {
-    for (const node of content.content) {
-      if (node.type === "paragraph" && node.content && node.content[0]?.text) {
-        text += node.content[0].text + " ";
-        if (text.length > 100) break;
-      }
+function collectTipTapPlainText(node: unknown): string {
+  if (!node || typeof node !== "object") return "";
+  const n = node as { text?: string; content?: unknown[] };
+  let out = "";
+  if (typeof n.text === "string") out += n.text;
+  if (Array.isArray(n.content)) {
+    for (const child of n.content) {
+      out += collectTipTapPlainText(child);
+      out += " ";
     }
+  }
+  return out;
+}
+
+function extractTextSnippet(content: unknown): string {
+  const doc = content as { type?: string; content?: unknown[] } | null;
+  if (!doc || doc.type !== "doc" || !Array.isArray(doc.content)) {
+    return "Empty document...";
+  }
+
+  try {
+    const text = collectTipTapPlainText({ type: "doc", content: doc.content })
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!text) return "Empty document...";
+    return text.length > 100 ? `${text.slice(0, 100)}...` : text;
   } catch (e) {
     console.error("Error parsing document content snippet", e);
+    return "Empty document...";
   }
-  
-  return text.trim() ? text.trim().slice(0, 100) + (text.length > 100 ? "..." : "") : "Empty document...";
 }
 
 export function DocumentCard({ document }: { document: DocumentData }) {

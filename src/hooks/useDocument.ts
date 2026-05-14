@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 export interface DocumentData {
   id: string;
   title: string;
-  content: any;
+  content: unknown;
   updated_at: string;
 }
 
@@ -17,6 +17,7 @@ export function useDocument(id: string) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const supabase = createClient();
 
+  // Browser Supabase client is a singleton; depend only on `id` so typing / autosave re-renders do not refetch.
   useEffect(() => {
     let isMounted = true;
 
@@ -33,10 +34,10 @@ export function useDocument(id: string) {
         if (isMounted && data) {
           setDocument(data);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (isMounted) {
           console.error("Error loading document:", err);
-          setError(err);
+          setError(err instanceof Error ? err : new Error(String(err)));
         }
       } finally {
         if (isMounted) setLoading(false);
@@ -50,10 +51,10 @@ export function useDocument(id: string) {
     return () => {
       isMounted = false;
     };
-  }, [id, supabase]);
+  }, [id]);
 
   const saveDocument = useCallback(
-    async (newTitle: string, newContent: any) => {
+    async (newTitle: string, newContent: unknown) => {
       if (!id) return;
       
       setSaveStatus("saving");
@@ -85,7 +86,7 @@ export function useDocument(id: string) {
         setSaveStatus("error");
       }
     },
-    [id, supabase]
+    [id]
   );
 
   return { document, loading, error, saveDocument, saveStatus, setSaveStatus };
