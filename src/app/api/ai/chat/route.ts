@@ -87,7 +87,10 @@ INSTRUCTIONS:
 1. Always base your suggestions and writing on the provided knowledge sources if relevant.
 2. If the user asks you to draft something, write clearly and concisely.
 3. You can format your responses using markdown.
-4. Be helpful, professional, and directly address the user's prompt.`;
+4. Be helpful, professional, and directly address the user's prompt.
+5. When you revise, correct, or fix wording that already appears in CURRENT DOCUMENT CONTENT, put any explanation or markdown *first*, then end your entire reply with **exactly one final line** and nothing after it:
+SCRIBE_REPLACE:{"find":"...verbatim substring from the document...","replace":"...corrected text..."}
+   Use straight ASCII double quotes in the JSON (do not use placeholder angle brackets—paste the real strings). Escape any double-quote characters inside find/replace as backslash-doublequote in JSON. The "find" value must match the document text exactly (including punctuation and spacing). If you are only adding new content and not replacing existing document text, omit the SCRIBE_REPLACE line entirely.`;
 
     const modelId = process.env.GROQ_MODEL?.trim() || DEFAULT_MODEL;
 

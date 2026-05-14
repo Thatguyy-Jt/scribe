@@ -2,6 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useKnowledge } from "@/hooks/useKnowledge";
+import {
+  getAssistantDisplayText,
+  replaceInEditor,
+  splitScribeMeta,
+} from "@/lib/scribeAssistantMeta";
 import { Editor } from "@tiptap/react";
 import { Send, Sparkles, ArrowLeftFromLine, Loader2 } from "lucide-react";
 
@@ -28,11 +33,25 @@ export function AIChatSidebar({ documentId, editor }: AIChatSidebarProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const insertIntoDocument = (text: string) => {
-    if (editor) {
-      editor.commands.insertContent(`\n\n${text}\n\n`);
-      editor.commands.focus();
+  const applyAssistantToDocument = (fullContent: string) => {
+    if (!editor) return;
+
+    const { body, meta } = splitScribeMeta(fullContent);
+
+    if (meta) {
+      const replaced = replaceInEditor(editor, meta.find, meta.replace);
+      if (replaced) {
+        editor.commands.focus();
+        return;
+      }
+      window.alert(
+        "The original text was not found in the document (it may have been edited). Inserting only the corrected wording below."
+      );
+      editor.chain().focus().insertContent(`\n\n${meta.replace}\n\n`).run();
+      return;
     }
+
+    editor.chain().focus().insertContent(`\n\n${body}\n\n`).run();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -158,7 +177,20 @@ export function AIChatSidebar({ documentId, editor }: AIChatSidebarProps) {
             </p>
           </div>
         ) : (
-          messages.map((message) => (
+          messages.map((message, index) => {
+            const parsed =
+              message.role === "assistant" ? splitScribeMeta(message.content) : null;
+            const isStreamTarget =
+              isLoading &&
+              message.role === "assistant" &&
+              index === messages.length - 1;
+            const displayText =
+              message.role === "assistant"
+                ? getAssistantDisplayText(message.content, isStreamTarget)
+                : message.content;
+            const insertLabel = parsed?.meta ? "Apply correction to document" : "Insert into document";
+
+            return (
             <div
               key={message.id}
               className={`flex flex-col ${
@@ -172,20 +204,22 @@ export function AIChatSidebar({ documentId, editor }: AIChatSidebarProps) {
                     : "bg-card border border-border text-foreground"
                 }`}
               >
-                <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
+                <div className="whitespace-pre-wrap leading-relaxed">{displayText}</div>
               </div>
               
               {message.role === "assistant" && message.content && !isLoading && (
                 <button
-                  onClick={() => insertIntoDocument(message.content)}
+                  type="button"
+                  onClick={() => applyAssistantToDocument(message.content)}
                   className="mt-2 flex items-center gap-1.5 text-xs font-medium text-blue-500 hover:text-blue-400 transition-colors pl-1"
                 >
                   <ArrowLeftFromLine className="h-3 w-3" />
-                  Insert into document
+                  {insertLabel}
                 </button>
               )}
             </div>
-          ))
+            );
+          })
         )}
         {isLoading && (
           <div className="flex items-center gap-2 text-muted-foreground text-sm pl-1">
