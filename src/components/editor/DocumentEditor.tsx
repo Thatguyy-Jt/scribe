@@ -1,6 +1,7 @@
 "use client";
 
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
+import type { JSONContent } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
@@ -10,6 +11,10 @@ import { useAutoSave } from "@/hooks/useAutoSave";
 import { DocumentHeader } from "./DocumentHeader";
 import { EditorToolbar } from "./EditorToolbar";
 import { Loader2, AlertTriangle } from "lucide-react";
+
+function isTipTapDocJson(value: unknown): boolean {
+  return typeof value === "object" && value !== null && (value as { type?: string }).type === "doc";
+}
 
 interface DocumentEditorProps {
   documentId: string;
@@ -77,13 +82,14 @@ export function DocumentEditor({
 
   // Update editor content ONLY when document is first loaded
   useEffect(() => {
-    if (editor && document?.content && !editor.isFocused) {
-      const currentText = editor.getText();
-      if (!currentText && document.content?.type === "doc") {
-        isLoadingContent.current = true;
-        editor.commands.setContent(document.content);
-        isLoadingContent.current = false;
-      }
+    if (!editor || !document?.content || editor.isFocused) return;
+    const loaded = document.content;
+    if (!isTipTapDocJson(loaded)) return;
+    const currentText = editor.getText();
+    if (!currentText) {
+      isLoadingContent.current = true;
+      editor.commands.setContent(loaded as JSONContent);
+      isLoadingContent.current = false;
     }
   }, [editor, document?.id]);
 
